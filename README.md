@@ -1,21 +1,31 @@
 # GPT-6.2 Astra Chat UI
 
-A beautiful, professional ChatGPT-style interface for **GPT-6.2 Astra**.
+A clean, professional ChatGPT-style interface for **GPT-6.2 Astra** and **GPT-6.2 Sol**, powered by [Puter.js](https://puter.com).
 
 ## Features
-- Clean dark theme with glassmorphism
-- Smooth message animations and typing indicator
-- Responsive sidebar with chat history
-- Model badge and professional header
-- Attach / Image / Code quick actions
-- Fully client-side (no backend required for demo)
 
-## How to view
-1. Open `index.html` in any modern browser
-2. Or enable GitHub Pages on this repository
+- Modern dark theme with smooth animations
+- Model switcher (Astra / Sol)
+- Chat history sidebar
+- Typing indicator
+- Suggestion prompts
+- Fully responsive
+- Client-side AI via Puter (no backend needed)
 
-## Customize
-Edit the sample replies or connect a real API endpoint in `script` section.
+## How to use
 
----
-Built for abd-ai369 · November 2026
+1. Open `index.html` in a browser (or host it)
+2. Select **Astra** or **Sol**
+3. Start chatting
+
+The UI uses:
+
+```js
+puter.ai.chat(prompt, {
+  model: "gpt-6.2-astra"   // or "openai/gpt-6.2-sol"
+})
+```
+
+## Live
+
+Just open the HTML file or deploy to any static host (GitHub Pages, Netlify, Vercel, etc.).
