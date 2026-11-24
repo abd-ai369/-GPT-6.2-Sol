@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>GPT-6.2 Astra | Professional Chat</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+    * { font-family: 'Inter', system-ui, sans-serif; }
+    :root {
+      --bg: #0b0f19;
+      --sidebar: #111827;
+      --card: #1f2937;
+      --accent: #6366f1;
+      --accent-hover: #818cf8;
+      --text: #f3f4f6;
+      --muted: #9ca3af;
+    }
+    body { background: var(--bg); color: var(--text); overflow: hidden; }
+    .glass {
+      background: rgba(31, 41, 55, 0.7);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255,255,255,0.08);
+    }
+    .message-user {
+      background: linear-gradient(135deg, #4f46e5, #7c3aed);
+      border-radius: 18px 18px 4px 18px;
+    }
+    .message-ai {
+      background: #1f2937;
+      border-radius: 18px 18px 18px 4px;
+      border: 1px solid rgba(255,255,255,0.06);
+    }
+    .typing-dot {
+      width: 8px; height: 8px; background: #818cf8;
+      border-radius: 50%; display: inline-block;
+      animation: bounce 1.4s infinite ease-in-out both;
+    }
+    .typing-dot:nth-child(1) { animation-delay: -0.32s; }
+    .typing-dot:nth-child(2) { animation-delay: -0.16s; }
+    @keyframes bounce {
+      0%, 80%, 100% { transform: scale(0); }
+      40% { transform: scale(1); }
+    }
+    .sidebar-item:hover { background: rgba(99, 102, 241, 0.15); }
+    .send-btn:hover { transform: scale(1.05); box-shadow: 0 0 20px rgba(99,102,241,0.5); }
+    .fade-in { animation: fadeIn 0.4s ease-out; }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: #374151; border-radius: 3px; }
+    .model-badge {
+      background: linear-gradient(90deg, #6366f1, #a855f7);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+  </style>
+</head>
+<body class="h-screen flex">
+
+  <!-- Sidebar -->
+  <aside id="sidebar" class="w-72 bg-[#111827] border-r border-white/5 flex flex-col transition-all duration-300">
+    <div class="p-4 border-b border-white/5">
+      <button onclick="newChat()" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl bg-indigo-600 hover:bg-indigo-500 transition text-sm font-medium">
+        <i class="fa-solid fa-plus"></i> New chat
+      </button>
+    </div>
+
+    <div class="flex-1 overflow-y-auto p-3 space-y-1" id="chat-history">
+      <div class="text-xs text-gray-500 px-3 py-2 uppercase tracking-wider">Today</div>
+      <div class="sidebar-item flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer text-sm text-gray-300" onclick="loadChat(this)">
+        <i class="fa-regular fa-message text-gray-500"></i>
+        <span class="truncate">Welcome to GPT-6.2 Astra</span>
+      </div>
+    </div>
+
+    <div class="p-4 border-t border-white/5 space-y-2">
+      <div class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white/5 cursor-pointer">
+        <div class="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-xs font-bold">A</div>
+        <div class="text-sm">
+          <div class="font-medium">abd-ai369</div>
+          <div class="text-xs text-gray-500">Pro Plan</div>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Main Chat Area -->
+  <main class="flex-1 flex flex-col relative">
+    <!-- Header -->
+    <header class="h-14 border-b border-white/5 flex items-center justify-between px-6 glass">
+      <div class="flex items-center gap-3">
+        <button onclick="toggleSidebar()" class="lg:hidden text-gray-400 hover:text-white">
+          <i class="fa-solid fa-bars"></i>
+        </button>
+        <div class="flex items-center gap-2">
+          <span class="text-lg font-semibold model-badge">GPT-6.2 Astra</span>
+          <span class="text-xs px-2 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">Frontier</span>
+        </div>
+      </div>
+      <div class="flex items-center gap-2">
+        <button class="p-2 rounded-lg hover:bg-white/5 text-gray-400 hover:text-white transition" title="Settings">
+          <i class="fa-solid fa-sliders"></i>
+        </button>
+        <button class="p-2 rounded-lg hover:bg-white/5 text-gray-400 hover:text-white transition" title="Share">
+          <i class="fa-solid fa-share-nodes"></i>
+        </button>
+      </div>
+    </header>
+
+    <!-- Messages -->
+    <div id="messages" class="flex-1 overflow-y-auto px-4 py-6 space-y-6">
+      <!-- Welcome message -->
+      <div class="max-w-3xl mx-auto fade-in">
+        <div class="flex gap-4">
+          <div class="w-9 h-9 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center flex-shrink-0">
+            <i class="fa-solid fa-sparkles text-sm"></i>
+          </div>
+          <div class="message-ai px-5 py-4 text-[15px] leading-relaxed max-w-[85%]">
+            <p class="mb-2">Hello! I'm <strong>GPT-6.2 Astra</strong> — OpenAI's high-capability frontier model.</p>
+            <p class="text-gray-400 text-sm">Optimized for deep reasoning, complex coding, research, and long-context analysis. How can I help you today?</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Input Area -->
+    <div class="border-t border-white/5 p-4 glass">
+      <div class="max-w-3xl mx-auto">
+        <div class="relative flex items-end gap-2">
+          <div class="flex-1 relative">
+            <textarea
+              id="user-input"
+              rows="1"
+              placeholder="Message GPT-6.2 Astra..."
+              class="w-full bg-[#1f2937] border border-white/10 rounded-2xl pl-5 pr-14 py-3.5 text-[15px] resize-none focus:outline-none focus:ring-2 focus:ring-indigo-500/50 placeholder-gray-500 transition"
+              onkeydown="handleKey(event)"
+              oninput="autoResize(this)"
+            ></textarea>
+            <button onclick="sendMessage()" id="send-btn" class="absolute right-2 bottom-2 w-10 h-10 rounded-xl bg-indigo-600 hover:bg-indigo-500 send-btn transition flex items-center justify-center disabled:opacity-40 disabled:cursor-not-allowed">
+              <i class="fa-solid fa-arrow-up"></i>
+            </button>
+          </div>
+        </div>
+        <div class="flex items-center justify-between mt-2 px-1">
+          <div class="flex gap-2">
+            <button class="text-xs px-3 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-gray-400 transition flex items-center gap-1.5">
+              <i class="fa-solid fa-paperclip"></i> Attach
+            </button>
+            <button class="text-xs px-3 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-gray-400 transition flex items-center gap-1.5">
+              <i class="fa-solid fa-image"></i> Image
+            </button>
+            <button class="text-xs px-3 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-gray-400 transition flex items-center gap-1.5">
+              <i class="fa-solid fa-code"></i> Code
+            </button>
+          </div>
+          <p class="text-xs text-gray-600">GPT-6.2 Astra can make mistakes. Verify important info.</p>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    const messagesEl = document.getElementById('messages');
+    const inputEl = document.getElementById('user-input');
+    const sendBtn = document.getElementById('send-btn');
+
+    const sampleReplies = [
+      "That's an interesting question. Let me break it down carefully...\n\nBased on the latest capabilities of GPT-6.2 Astra, I can help with deep analysis, multi-step reasoning, and generating high-quality code or content.",
+      "Understood. Here's a clear and structured response:\n\n1. First, consider the core problem.\n2. Then explore possible approaches.\n3. Finally, choose the most efficient path.\n\nWould you like me to expand on any of these points?",
+      "Great request! GPT-6.2 Astra is designed for exactly this kind of complex work. Here's my best answer based on current knowledge and reasoning capabilities.",
+      "I've processed your request with high attention to detail. The result is both accurate and optimized for clarity. Let me know if you need refinements or additional context."
+    ];
+
+    function autoResize(el) {
+      el.style.height = 'auto';
+      el.style.height = Math.min(el.scrollHeight, 160) + 'px';
+    }
+
+    function handleKey(e) {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        sendMessage();
+      }
+    }
+
+    function sendMessage() {
+      const text = inputEl.value.trim();
+      if (!text) return;
+
+      // User message
+      appendMessage(text, 'user');
+      inputEl.value = '';
+      autoResize(inputEl);
+
+      // Typing indicator
+      const typingId = showTyping();
+
+      // Simulate response
+      setTimeout(() => {
+        removeTyping(typingId);
+        const reply = sampleReplies[Math.floor(Math.random() * sampleReplies.length)];
+        appendMessage(reply, 'ai');
+      }, 1200 + Math.random() * 800);
+    }
+
+    function appendMessage(text, role) {
+      const wrapper = document.createElement('div');
+      wrapper.className = 'max-w-3xl mx-auto fade-in';
+
+      if (role === 'user') {
+        wrapper.innerHTML = `
+          <div class="flex gap-4 justify-end">
+            <div class="message-user px-5 py-3.5 text-[15px] leading-relaxed max-w-[80%] text-white">
+              ${escapeHtml(text)}
+            </div>
+            <div class="w-9 h-9 rounded-full bg-gray-600 flex items-center justify-center flex-shrink-0 text-sm font-medium">
+              You
+            </div>
+          </div>`;
+      } else {
+        wrapper.innerHTML = `
+          <div class="flex gap-4">
+            <div class="w-9 h-9 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center flex-shrink-0">
+              <i class="fa-solid fa-sparkles text-sm"></i>
+            </div>
+            <div class="message-ai px-5 py-4 text-[15px] leading-relaxed max-w-[85%] whitespace-pre-wrap">
+              ${escapeHtml(text)}
+            </div>
+          </div>`;
+      }
+
+      messagesEl.appendChild(wrapper);
+      messagesEl.scrollTop = messagesEl.scrollHeight;
+    }
+
+    function showTyping() {
+      const id = 'typing-' + Date.now();
+      const wrapper = document.createElement('div');
+      wrapper.id = id;
+      wrapper.className = 'max-w-3xl mx-auto fade-in';
+      wrapper.innerHTML = `
+        <div class="flex gap-4">
+          <div class="w-9 h-9 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center flex-shrink-0">
+            <i class="fa-solid fa-sparkles text-sm"></i>
+          </div>
+          <div class="message-ai px-5 py-4 flex items-center gap-1.5">
+            <span class="typing-dot"></span>
+            <span class="typing-dot"></span>
+            <span class="typing-dot"></span>
+          </div>
+        </div>`;
+      messagesEl.appendChild(wrapper);
+      messagesEl.scrollTop = messagesEl.scrollHeight;
+      return id;
+    }
+
+    function removeTyping(id) {
+      const el = document.getElementById(id);
+      if (el) el.remove();
+    }
+
+    function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    function newChat() {
+      messagesEl.innerHTML = `
+        <div class="max-w-3xl mx-auto fade-in">
+          <div class="flex gap-4">
+            <div class="w-9 h-9 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center flex-shrink-0">
+              <i class="fa-solid fa-sparkles text-sm"></i>
+            </div>
+            <div class="message-ai px-5 py-4 text-[15px] leading-relaxed max-w-[85%]">
+              <p class="mb-2">New conversation started with <strong>GPT-6.2 Astra</strong>.</p>
+              <p class="text-gray-400 text-sm">Ready when you are.</p>
+            </div>
+          </div>
+        </div>`;
+    }
+
+    function toggleSidebar() {
+      const sidebar = document.getElementById('sidebar');
+      sidebar.classList.toggle('hidden');
+    }
+
+    function loadChat(el) {
+      // Simple highlight
+      document.querySelectorAll('.sidebar-item').forEach(i => i.classList.remove('bg-indigo-500/20'));
+      el.classList.add('bg-indigo-500/20');
+    }
+
+    // Focus input on load
+    inputEl.focus();
+  </script>
+</body>
+</html>
